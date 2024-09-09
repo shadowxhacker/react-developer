@@ -1,6 +1,5 @@
 {
   "name": "reactapp",
-  "homepage": "https://shadowxhacker.github.io/Website-Services",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
