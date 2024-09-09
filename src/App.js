@@ -12,7 +12,7 @@ function App() {
     <div>
       <Header />
       <Routes>
-            <Route path='/' element={<Home />} />
+            <Route exact path='/react-developer' element={<Home />} />
             <Route path='/orders' element={<CardData />} />
             <Route path='/about' element={<About />} />
             <Route path='/contact' element={<Contact />} />
