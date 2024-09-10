@@ -2,7 +2,7 @@
   "name": "reactapp",
   "homepage": "https://shadowxhacker.github.io/react-developer",
   "version": "0.1.0",
-  "private": false,
+  "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
