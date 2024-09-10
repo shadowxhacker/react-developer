@@ -33,7 +33,7 @@ function About() {
             <div class="relative">
                 <img class="absolute inset-x-0 bottom-0 -mb-48 -translate-x-1/2 left-1/2" src="https://cdn.rareblocks.xyz/collection/celebration/images/team/1/blob-shape.svg" alt="" />
 
-                <img class="relative w-[340px] sm:w-[322px] xl:max-w-lg xl:mx-auto 2xl:origin-bottom 2xl:scale-110" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh-Qz8AWHytW7IIJ-O_n8zo3d4hJZBBiKFxFTxuFToj7QdhxQ-ErHOrgp_WCr9GzXcUiaUfb6FsD3PqVpVaXYIEZMagC_OgdWOTnIxkLuilunz6_tdfruSg184wKehBXCd4tDdSCnbR_29A3dAwBem9-xw1u3elKcBt8dW2FLsffHrhyphenhyphenZVtJMNvWurCh9d5/s320/WhatsApp_Image_2024-09-09_at_10.26.49_AM-removebg-preview.png" alt="" />
+                <img class="relative w-[340px] sm:w-[327.2px] xl:max-w-lg xl:mx-auto 2xl:origin-bottom 2xl:scale-110" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhwzuRBoGX9k0J0dtuP4csM9dKxQaGBI_tYLzw71bVPsb_cD2Cf3xGKdw6zkxNv9pvwJfOA0zoU2bZEAUHikq69aPdQ1kWjg1ZjQAinuUxUdIoKWv0kHpjCZvdpjjQX-ad_Z0ejYoczRY3pDbU_lGPNstj_KhWjVtCiXEbT0Jicfo16MXxl2mVsnRxI315r/s320/65ac0524491f3ab5ace9ed4dd054325b-removebg-preview.png" alt="" />
             </div>
 
         </div>

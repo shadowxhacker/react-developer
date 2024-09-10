@@ -5,6 +5,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import CardData from './CardsData'
 import Blog from './pages/Blog'
+import Posted from './pages/Posted'
 import { Routes, Route } from 'react-router-dom'
 
 
@@ -19,6 +20,7 @@ function App() {
             <Route path='/about' element={<About />} />
             <Route path='/contact' element={<Contact />} />
             <Route path='/blog' element={<Blog />} />
+            <Route path='/posted' element={<Posted />} />
         </Routes>
     </div>
   )

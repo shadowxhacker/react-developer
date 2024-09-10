@@ -10,11 +10,11 @@ function Header() {
 
     return (
         <>
-            <header className="sticky top-0 z-50 h-20 w-full bg-zinc-800">
+            <header className="sticky top-0 z-50 h-[70px] w-full bg-zinc-800">
                 <div className="flex justify-between items-center h-full px-4">
                     <div className="text-2xl font-bold text-cyan-300">
                         <Link to="/">
-                        <img className='w-[70px]' src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhvPjLztXFmfFOr9vVoIIIdztMoXAa0URHIJsZPRcVrAIhr5-K726iaCQtr8ixr_mhLWM81d6ErO_1Xg5I54jQFPE4PFFCOcgedDsJJQ-55Ywue2F-19OhrOv7eNBCBlGUJbdSXJB2yNefVCOJ5uYunYZxZ_JKVZrlLHpfJZsn1sC68NkeXJs-96JKx30BX/s320/WhatsApp_Image_2024-09-09_at_11.03.41_PM-removebg-preview.png" alt="Logo" />
+                        <img className='w-[60px]' src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhvPjLztXFmfFOr9vVoIIIdztMoXAa0URHIJsZPRcVrAIhr5-K726iaCQtr8ixr_mhLWM81d6ErO_1Xg5I54jQFPE4PFFCOcgedDsJJQ-55Ywue2F-19OhrOv7eNBCBlGUJbdSXJB2yNefVCOJ5uYunYZxZ_JKVZrlLHpfJZsn1sC68NkeXJs-96JKx30BX/s320/WhatsApp_Image_2024-09-09_at_11.03.41_PM-removebg-preview.png" alt="Logo" />
                         </Link>
                     </div>
                     <div className="sm:hidden">
@@ -28,7 +28,7 @@ function Header() {
                             </svg>
                         </button>
                     </div>
-                    <ul className={`sm:flex flex-col sm:flex-row items-center sm:items-start absolute sm:static top-20 left-0 w-full bg-zinc-800 sm:bg-transparent sm:w-auto sm:h-auto pb-5 transition-all duration-300 ease-in-out ${isOpen ? 'block' : 'hidden'}`}>
+                    <ul className={`sm:flex flex-col sm:flex-row items-center sm:items-start absolute sm:static top-16 left-0 w-full bg-zinc-800 sm:bg-transparent sm:w-auto sm:h-auto pb-2 transition-all duration-300 ease-in-out ${isOpen ? 'block' : 'hidden'}`}>
                         <li className="list-none text-[1.4rem] sm:text-[1.6rem] mt-3 sm:mt-0 font-medium text-cyan-300">
                             <Link className="block sm:inline px-5 sm:pr-10" to="/" onClick={toggleMenu}>Home</Link>
                         </li>
@@ -39,10 +39,10 @@ function Header() {
                             <Link className="block sm:inline px-5 sm:pr-10" to="/about" onClick={toggleMenu}>About</Link>
                         </li>
                         <li className="list-none text-[1.4rem] sm:text-[1.6rem] mt-3 sm:mt-0 font-medium text-cyan-300">
-                            <Link className="block sm:inline px-5 sm:pr-10" to="/contact" onClick={toggleMenu}>Contact</Link>
+                            <Link className="block sm:inline px-5 sm:pr-10" to="/blog" onClick={toggleMenu}>Blog</Link>
                         </li>
                         <li className="list-none text-[1.4rem] sm:text-[1.6rem] mt-3 sm:mt-0 font-medium text-cyan-300">
-                            <Link className="block sm:inline px-5 sm:pr-10" to="/blog" onClick={toggleMenu}>Blog</Link>
+                            <Link className="block sm:inline px-5 sm:pr-10" to="/contact" onClick={toggleMenu}>Contact</Link>
                         </li>
                     </ul>
                 </div>
