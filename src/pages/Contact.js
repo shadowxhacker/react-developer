@@ -62,7 +62,7 @@ function Contact() {
           <form onSubmit={sendEmail} className="lg:w-1/3 md:w-1/2 bg-white rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md">
             <h2 className="text-gray-900 text-lg mb-1 font-medium title-font">Feedback</h2>
             <p className="leading-relaxed mb-5 text-gray-600">
-            PQFJ+58M, Shamsabad, Dādu, Dadu District, Sindh 76200
+            Reach out with your message and contact details, or connect with us on LinkedIn or Instagram.
             </p>
             <div className="relative mb-4">
               <label htmlFor="email" className="leading-7 text-sm text-gray-600">
