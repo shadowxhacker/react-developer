@@ -1,8 +1,19 @@
-import React from "react"
+import React, { useEffect } from "react"
 import Button from "../buttons/Button"
 import CardsData from '../CardsData'
+import ReactGA from 'react-ga'
 
 export default () => {
+
+    useEffect(() => {
+        
+        ReactGA.initialize(TRACKING_ID);
+
+        ReactGA.pageview(window.location.pathname + window.location.search);
+    }, []); 
+
+
+
 
     return (
         <>
