@@ -4,11 +4,8 @@ import Home from './pages/Home'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import CardData from './CardsData'
-import ReactGA from 'react-ga'
 import { Routes, Route } from 'react-router-dom'
 
-const TRACKING_ID = "GTM-WM2KX36C";
-ReactGA.initialize(TRACKING_ID);
 
 
 function App() {

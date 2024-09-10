@@ -3,6 +3,8 @@ import Button from "../buttons/Button"
 import CardsData from '../CardsData'
 import ReactGA from 'react-ga'
 
+const TRACKING_ID = "GTM-WM2KX36C";
+
 export default () => {
 
     useEffect(() => {
