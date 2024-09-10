@@ -8,7 +8,7 @@ const TRACKING_ID = "GTM-WM2KX36C";
 export default () => {
 
     useEffect(() => {
-        
+        document.title = 'Agency - Home Page'
         ReactGA.initialize(TRACKING_ID);
 
         ReactGA.pageview(window.location.pathname + window.location.search);

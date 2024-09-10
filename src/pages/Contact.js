@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import emailjs from 'emailjs-com'
 
 function Contact() {
+  useEffect(() => {
+    document.title = 'Agency - Contact Us';
+}, []);
   const [formData, setFormData] = useState({
     email: '',
     message: ''
@@ -88,11 +91,12 @@ function Contact() {
                 value={formData.message}
                 onChange={handleInputChange}
                 required
+                placeholder='Type your message and details'
                 className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
               ></textarea>
             </div>
             <button className="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg" type='submit'>
-              Button
+              Send Message
             </button>
             <p className="text-xs text-gray-500 mt-3">
               Let's Contact And Make a Deal to Grow your Business

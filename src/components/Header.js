@@ -14,7 +14,7 @@ function Header() {
                 <div className="flex justify-between items-center h-full px-4">
                     <div className="text-2xl font-bold text-cyan-300">
                         <Link to="/">
-                        <img className='w-20' src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhvPjLztXFmfFOr9vVoIIIdztMoXAa0URHIJsZPRcVrAIhr5-K726iaCQtr8ixr_mhLWM81d6ErO_1Xg5I54jQFPE4PFFCOcgedDsJJQ-55Ywue2F-19OhrOv7eNBCBlGUJbdSXJB2yNefVCOJ5uYunYZxZ_JKVZrlLHpfJZsn1sC68NkeXJs-96JKx30BX/s320/WhatsApp_Image_2024-09-09_at_11.03.41_PM-removebg-preview.png" alt="Logo" />
+                        <img className='w-[70px]' src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhvPjLztXFmfFOr9vVoIIIdztMoXAa0URHIJsZPRcVrAIhr5-K726iaCQtr8ixr_mhLWM81d6ErO_1Xg5I54jQFPE4PFFCOcgedDsJJQ-55Ywue2F-19OhrOv7eNBCBlGUJbdSXJB2yNefVCOJ5uYunYZxZ_JKVZrlLHpfJZsn1sC68NkeXJs-96JKx30BX/s320/WhatsApp_Image_2024-09-09_at_11.03.41_PM-removebg-preview.png" alt="Logo" />
                         </Link>
                     </div>
                     <div className="sm:hidden">
@@ -40,6 +40,9 @@ function Header() {
                         </li>
                         <li className="list-none text-[1.4rem] sm:text-[1.6rem] mt-3 sm:mt-0 font-medium text-cyan-300">
                             <Link className="block sm:inline px-5 sm:pr-10" to="/contact" onClick={toggleMenu}>Contact</Link>
+                        </li>
+                        <li className="list-none text-[1.4rem] sm:text-[1.6rem] mt-3 sm:mt-0 font-medium text-cyan-300">
+                            <Link className="block sm:inline px-5 sm:pr-10" to="/blog" onClick={toggleMenu}>Blog</Link>
                         </li>
                     </ul>
                 </div>

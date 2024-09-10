@@ -1,8 +1,11 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import Card from './components/Card'
 import { useNavigate } from 'react-router-dom'
 
 function CardsData() {
+    useEffect(() => {
+        document.title = 'Agency - Order';
+    }, []);
     const navigate = useNavigate();
     return (
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 auto-rows-auto'>
