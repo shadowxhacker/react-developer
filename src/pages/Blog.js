@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, deleteDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { CommentSection } from 'react-comments-section';
+import 'react-comments-section/dist/index.css'
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from '../components/firebase';
 import { MdOutlineDelete, MdFavoriteBorder, MdFavorite } from 'react-icons/md';
@@ -20,6 +22,66 @@ const Blog = () => {
     const [username, setUsername] = useState('');
     const [userProfilePic, setUserProfilePic] = useState('');
     const [loading, setLoading] = useState(false);
+    const [replyToCommentId, setReplyToCommentId] = useState(null)
+
+const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
+
+
+     const handleCommentSubmit = async (postId, commentData, parentCommentId = null) => {
+        const postRef = doc(db, 'posts', postId);
+        try {
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                const post = postSnap.data();
+                let updatedComments = [...(post.comments || [])];
+                
+                if (parentCommentId) {
+                    updatedComments = updatedComments.map(comment => {
+                        if (comment.id === parentCommentId) {
+                            const updatedReplies = [...(comment.replies || []), commentData];
+                            return { ...comment, replies: updatedReplies };
+                        }
+                        return comment;
+                    });
+                } else {
+                    updatedComments.push(commentData);
+                }
+                await updateDoc(postRef, { comments: updatedComments });
+                toast.success('Comment added successfully!');
+            }
+        } catch (error) {
+            console.log('Error submitting comment: ', error);
+            toast.error('Failed to add comment.');
+        }
+    };
+
+    const renderComments = (comments) => {
+        return comments.map(comment => (
+            <div key={comment.id} className='comment'>
+                <div>{comment.text}</div>
+                <button onClick={() => openReplyForm(comment.id)}>Reply</button>
+                {comment.replies && (
+                    <div className='replies'>
+                        {renderComments(comment.replies)}
+                    </div>
+                )}
+            </div>
+        ));
+    };
+
+    const openReplyForm = (commentId) => {
+        setReplyToCommentId(commentId);
+    };
+
+    const handleReplySubmit = (postId, replyText) => {
+        const replyData = {
+            id: generateUniqueId(),
+            text: replyText,
+            timestamp: serverTimestamp(),
+        };
+        handleCommentSubmit(postId, replyData, replyToCommentId);
+        setReplyToCommentId(null);
+    };
 
     useEffect(() => {
         const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
@@ -33,10 +95,10 @@ const Blog = () => {
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
                         setUsername(userData.displayName || 'Anonymous');
-                        setUserProfilePic(userData.profilePic || 'https://via.placeholder.com/150');
+                        setUserProfilePic(userData.profilePic || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH9CRhnReS_zO5GUYgkToo8ui3amVKgQOmkkHWZ4A1WMnXCCZfnSy_SBeO7XZhYiCRYchHunNo3Gz-aCEv_Fa2auSxLHf3pb4tHzjn2zRp8eNYqMPmDypcA_FlRKfD7CH2XGsVEOTkEHXhFLMuWxOh0BSeKF7hzT_tDPHyc8C0jYCB2zUSJ6UTUvfCBDKc/s320/6ad28c921dd31b98cc53cd0a064d6081.jpg');
                     } else {
                         setUsername('Anonymous');
-                        setUserProfilePic('https://via.placeholder.com/150');
+                        setUserProfilePic('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH9CRhnReS_zO5GUYgkToo8ui3amVKgQOmkkHWZ4A1WMnXCCZfnSy_SBeO7XZhYiCRYchHunNo3Gz-aCEv_Fa2auSxLHf3pb4tHzjn2zRp8eNYqMPmDypcA_FlRKfD7CH2XGsVEOTkEHXhFLMuWxOh0BSeKF7hzT_tDPHyc8C0jYCB2zUSJ6UTUvfCBDKc/s320/6ad28c921dd31b98cc53cd0a064d6081.jpg');
                     }
                 } catch (error) {
                     console.error("Error fetching user data: ", error.message);
@@ -46,7 +108,7 @@ const Blog = () => {
                 setIsLoggedIn(false);
                 setCurrentUserId(null);
                 setUsername('');
-                setUserProfilePic('https://via.placeholder.com/150');
+                setUserProfilePic('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH9CRhnReS_zO5GUYgkToo8ui3amVKgQOmkkHWZ4A1WMnXCCZfnSy_SBeO7XZhYiCRYchHunNo3Gz-aCEv_Fa2auSxLHf3pb4tHzjn2zRp8eNYqMPmDypcA_FlRKfD7CH2XGsVEOTkEHXhFLMuWxOh0BSeKF7hzT_tDPHyc8C0jYCB2zUSJ6UTUvfCBDKc/s320/6ad28c921dd31b98cc53cd0a064d6081.jpg');
             }
         });
 
@@ -253,7 +315,7 @@ const Blog = () => {
 
             <div className='flex flex-col items-center mt-5'>
                 {posts.map((post) => (
-                    <div key={post.id} className='w-full max-w-lg bg-gray-200 p-5 mb-5 rounded-3xl'>
+                    <div key={post.id} className='w-full max-w-lg bg-gray-200 p-5 mb-5 border-[1px] border-blue-300 rounded-3xl'>
                         <div className='flex items-center mb-2'>
                             <img src={post.userProfilePic} alt={post.username} className='w-12 h-12 rounded-full mr-2' />
                             <span className='font-semibold'>{post.username}</span>
@@ -262,9 +324,9 @@ const Blog = () => {
                         <p className='mt-2'>{post.description}</p>
                         {post.media && (
                             post.mediaType === 'image' ? (
-                                <img src={post.media} alt='Post media' className='mt-4 max-w-full' />
+                                <img src={post.media} alt='Post media' className='mt-4 max-w-full rounded-xl' />
                             ) : (
-                                <video src={post.media} controls className='mt-4 max-w-full' />
+                                <video src={post.media} controls className='mt-4 max-w-full rounded-xl' />
                             )
                         )}
                         <div className='flex items-center mt-4'>
@@ -288,6 +350,23 @@ const Blog = () => {
                             )}
                         </div>
                         <div className='text-sm text-gray-500 mt-2'>{formatTimestamp(post.timestamp)}</div>
+                        <div className='w-full'>
+                            {isLoggedIn && (
+                                <CommentSection
+                                currentUser={{
+                                    currentUserId,
+                                    currentUserImg: userProfilePic,
+                                    currentUserFullName: username,
+                                    currentUserFullName: username
+                                }}
+                                logIn={{
+                                    signupLink: '/signup',
+                                }}
+                                commentData={post.comments || []}
+                                onSubmitAction={(commentData) => handleCommentSubmit(post.id, commentData)}
+                                />
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
