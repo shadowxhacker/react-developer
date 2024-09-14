@@ -5,7 +5,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import CardData from './CardsData'
 import Blog from './pages/Blog'
-import Posted from './pages/Posted'
+import Signup from './components/Singup'
 import { Routes, Route } from 'react-router-dom'
 
 
@@ -15,12 +15,12 @@ function App() {
     <div>
       <Header />
       <Routes>
-            <Route path='/' element={<Home />} />
+            <Route path='/' element={<Blog />} />
+            <Route path='/home' element={<Home />} />
             <Route path='/orders' element={<CardData />} />
             <Route path='/about' element={<About />} />
             <Route path='/contact' element={<Contact />} />
-            <Route path='/blog' element={<Blog />} />
-            <Route path='/posted' element={<Posted />} />
+            <Route path='/singup' element={<Signup />} />
         </Routes>
     </div>
   )
