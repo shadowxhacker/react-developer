@@ -2,13 +2,12 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, deleteDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { CommentSection } from 'react-comments-section';
-import 'react-comments-section/dist/index.css'
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, db, storage } from '../components/firebase';
 import { MdOutlineDelete, MdFavoriteBorder, MdFavorite } from 'react-icons/md';
 import { Helmet } from 'react-helmet';
 import { RotatingLines } from 'react-loader-spinner';
+import { useNavigate } from 'react-router-dom';
 
 const Blog = () => {
     const [title, setTitle] = useState('');
@@ -19,69 +18,10 @@ const Blog = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
-    const [username, setUsername] = useState('');
+    const [fullName, setFullName] = useState('');
     const [userProfilePic, setUserProfilePic] = useState('');
     const [loading, setLoading] = useState(false);
-    const [replyToCommentId, setReplyToCommentId] = useState(null)
-
-const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
-
-
-     const handleCommentSubmit = async (postId, commentData, parentCommentId = null) => {
-        const postRef = doc(db, 'posts', postId);
-        try {
-            const postSnap = await getDoc(postRef);
-            if (postSnap.exists()) {
-                const post = postSnap.data();
-                let updatedComments = [...(post.comments || [])];
-                
-                if (parentCommentId) {
-                    updatedComments = updatedComments.map(comment => {
-                        if (comment.id === parentCommentId) {
-                            const updatedReplies = [...(comment.replies || []), commentData];
-                            return { ...comment, replies: updatedReplies };
-                        }
-                        return comment;
-                    });
-                } else {
-                    updatedComments.push(commentData);
-                }
-                await updateDoc(postRef, { comments: updatedComments });
-                toast.success('Comment added successfully!');
-            }
-        } catch (error) {
-            console.log('Error submitting comment: ', error);
-            toast.error('Failed to add comment.');
-        }
-    };
-
-    const renderComments = (comments) => {
-        return comments.map(comment => (
-            <div key={comment.id} className='comment'>
-                <div>{comment.text}</div>
-                <button onClick={() => openReplyForm(comment.id)}>Reply</button>
-                {comment.replies && (
-                    <div className='replies'>
-                        {renderComments(comment.replies)}
-                    </div>
-                )}
-            </div>
-        ));
-    };
-
-    const openReplyForm = (commentId) => {
-        setReplyToCommentId(commentId);
-    };
-
-    const handleReplySubmit = (postId, replyText) => {
-        const replyData = {
-            id: generateUniqueId(),
-            text: replyText,
-            timestamp: serverTimestamp(),
-        };
-        handleCommentSubmit(postId, replyData, replyToCommentId);
-        setReplyToCommentId(null);
-    };
+    const navigate = useNavigate();
 
     useEffect(() => {
         const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
@@ -94,11 +34,8 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
                     const userSnap = await getDoc(userRef);
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
-                        setUsername(userData.displayName || 'Anonymous');
-                        setUserProfilePic(userData.profilePic || 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH9CRhnReS_zO5GUYgkToo8ui3amVKgQOmkkHWZ4A1WMnXCCZfnSy_SBeO7XZhYiCRYchHunNo3Gz-aCEv_Fa2auSxLHf3pb4tHzjn2zRp8eNYqMPmDypcA_FlRKfD7CH2XGsVEOTkEHXhFLMuWxOh0BSeKF7hzT_tDPHyc8C0jYCB2zUSJ6UTUvfCBDKc/s320/6ad28c921dd31b98cc53cd0a064d6081.jpg');
-                    } else {
-                        setUsername('Anonymous');
-                        setUserProfilePic('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH9CRhnReS_zO5GUYgkToo8ui3amVKgQOmkkHWZ4A1WMnXCCZfnSy_SBeO7XZhYiCRYchHunNo3Gz-aCEv_Fa2auSxLHf3pb4tHzjn2zRp8eNYqMPmDypcA_FlRKfD7CH2XGsVEOTkEHXhFLMuWxOh0BSeKF7hzT_tDPHyc8C0jYCB2zUSJ6UTUvfCBDKc/s320/6ad28c921dd31b98cc53cd0a064d6081.jpg');
+                        setFullName(userData.fullName);
+                        setUserProfilePic(userData.profilePic || '');
                     }
                 } catch (error) {
                     console.error("Error fetching user data: ", error.message);
@@ -107,8 +44,8 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
             } else {
                 setIsLoggedIn(false);
                 setCurrentUserId(null);
-                setUsername('');
-                setUserProfilePic('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH9CRhnReS_zO5GUYgkToo8ui3amVKgQOmkkHWZ4A1WMnXCCZfnSy_SBeO7XZhYiCRYchHunNo3Gz-aCEv_Fa2auSxLHf3pb4tHzjn2zRp8eNYqMPmDypcA_FlRKfD7CH2XGsVEOTkEHXhFLMuWxOh0BSeKF7hzT_tDPHyc8C0jYCB2zUSJ6UTUvfCBDKc/s320/6ad28c921dd31b98cc53cd0a064d6081.jpg');
+                setFullName('');
+                setUserProfilePic('');
             }
         });
 
@@ -173,14 +110,14 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
                 'state_changed',
                 null,
                 (error) => {
-                    console.error("Error uploading media: ", error.message);
+                    console.error("Error uploading media: ", error);
                     reject(error);
                 },
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref)
                         .then(resolve)
                         .catch((error) => {
-                            console.error("Error getting media URL: ", error.message);
+                            console.error("Error getting media URL: ", error);
                             reject(error);
                         });
                 }
@@ -189,56 +126,61 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
     };
 
     const submit = async () => {
-        if (title && description) {
-            if (description.length > 5000) {
-                toast.error('Description cannot exceed 5000 characters.');
-                return;
+        if (!title || !description) {
+            toast.error('Title and description are required.');
+            return;
+        }
+
+        if (description.length > 5000) {
+            toast.error('Description cannot exceed 5000 characters.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const currentUser = auth.currentUser;
+
+            let mediaURL = null;
+            if (media) {
+                mediaURL = await uploadMedia(media);
             }
 
-            setLoading(true);
+            const newPost = {
+                title,
+                description,
+                media: mediaURL,
+                mediaType,
+                fullName,
+                userProfilePic,
+                timestamp: serverTimestamp(),
+                userId: currentUser.uid,
+                likes: []
+            };
 
-            try {
-                const currentUser = auth.currentUser;
+            const postRef = doc(collection(db, 'posts'));
+            await setDoc(postRef, newPost);
 
-                let mediaURL = null;
-                if (media) {
-                    mediaURL = await uploadMedia(media);
-                }
-
-                const newPost = {
-                    title,
-                    description,
-                    media: mediaURL,
-                    mediaType,
-                    username,
-                    userProfilePic: userProfilePic || 'https://via.placeholder.com/150',
-                    timestamp: serverTimestamp(),
-                    userId: currentUser.uid,
-                    likes: [] // Initialize likes array
-                };
-
-                const postRef = doc(collection(db, 'posts'));
-                await setDoc(postRef, newPost);
-
-                setTitle('');
-                setDescription('');
-                setMedia(null);
-                setIsFormOpen(false);
-                toast.success('Post created successfully!');
-            } catch (error) {
-                console.error("Error adding document: ", error.message);
-                toast.error(`Error posting your content: ${error.message}`);
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            toast.error('Title and description are required');
+            setTitle('');
+            setDescription('');
+            setMedia(null);
+            setIsFormOpen(false);
+            toast.success('Post created successfully!');
+        } catch (error) {
+            console.error("Error adding document: ", error.message);
+            toast.error(`Error posting your content: ${error.message}`);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const deletePost = async (id) => {
+    const deletePost = async (id, mediaURL) => {
         try {
             await deleteDoc(doc(db, 'posts', id));
+            if (mediaURL) {
+                const mediaRef = ref(storage, mediaURL);
+                await deleteObject(mediaRef);
+            }
             toast.success('Post deleted successfully!');
         } catch (error) {
             console.error("Error deleting document: ", error.message);
@@ -247,6 +189,10 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
     };
 
     const likePost = async (postId, likes) => {
+        if (!isLoggedIn) {
+            toast.error('You must be logged in to like a post.');
+            return;
+        }
         try {
             const postRef = doc(db, 'posts', postId);
             if (likes.includes(currentUserId)) {
@@ -264,6 +210,10 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
             console.error("Error liking or unliking post: ", error.message);
             toast.error(`Error liking or unliking the post: ${error.message}`);
         }
+    };
+
+    const viewProfile = (userId) => {
+        navigate(`/profile/${userId}`);
     };
 
     const createPostButton = useMemo(() => (
@@ -288,7 +238,7 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
             </div>
 
             {isFormOpen && (
-                <div className='flex flex-col items-center justify-center w-full h-autorelative mt-5'>
+                <div className='flex flex-col items-center justify-center w-full h-auto mt-5'>
                     <div className='w-full max-w-lg bg-slate-500 rounded-3xl p-5'>
                         <input
                             type='text'
@@ -306,69 +256,63 @@ const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
                         <div className='relative w-full mb-4'>
                             <input type="file" accept='image/*,video/*' onChange={handleMediaChange} className='text-transparent' />
                         </div>
-                        <button onClick={submit} className='bg-blue-500 text-white p-3 rounded-2xl'>
-                            {loading ? <RotatingLines strokeColor="white" strokeWidth="5" animationDuration="0.75" width="24" visible={true} /> : 'Submit'}
+                        <button
+                            onClick={submit}
+                            className='bg-blue-500 text-white px-5 py-2 rounded-xl'
+                            disabled={loading}
+                        >
+                            {loading ? <RotatingLines width="20" color="white" /> : 'Submit'}
                         </button>
                     </div>
                 </div>
             )}
 
             <div className='flex flex-col items-center mt-5'>
-                {posts.map((post) => (
-                    <div key={post.id} className='w-full max-w-lg bg-gray-200 p-5 mb-5 border-[1px] border-blue-300 rounded-3xl'>
-                        <div className='flex items-center mb-2'>
-                            <img src={post.userProfilePic} alt={post.username} className='w-12 h-12 rounded-full mr-2' />
-                            <span className='font-semibold'>{post.username}</span>
-                        </div>
-                        <h2 className='text-xl font-bold'>{post.title}</h2>
-                        <p className='mt-2'>{post.description}</p>
-                        {post.media && (
-                            post.mediaType === 'image' ? (
-                                <img src={post.media} alt='Post media' className='mt-4 max-w-full rounded-xl' />
-                            ) : (
-                                <video src={post.media} controls className='mt-4 max-w-full rounded-xl' />
-                            )
-                        )}
-                        <div className='flex items-center mt-4'>
-                            {post.likes && post.likes.includes(currentUserId) ? (
-                                <MdFavorite
-                                    onClick={() => likePost(post.id, post.likes || [])}
-                                    className='text-red-500 text-2xl cursor-pointer'
+                {posts.length > 0 ? (
+                    posts.map(post => (
+                        <div key={post.id} className='w-full max-w-lg bg-gray-800 text-white rounded-lg p-5 mb-5'>
+                            <div className='flex items-center mb-3 cursor-pointer' onClick={() => viewProfile(post.userId)}>
+                                <img
+                                    src={post.userProfilePic || 'defaultProfilePicUrl'} // Default profile pic URL if not available
+                                    alt={post.fullName}
+                                    className='w-12 h-12 rounded-full mr-3'
                                 />
-                            ) : (
-                                <MdFavoriteBorder
-                                    onClick={() => likePost(post.id, post.likes || [])}
-                                    className='text-gray-500 text-2xl cursor-pointer'
-                                />
+                                <div>
+                                    <div className='text-lg font-bold'>{post.fullName}</div>
+                                    <div className='text-sm text-gray-400'>{formatTimestamp(post.timestamp)}</div>
+                                </div>
+                            </div>
+                            <h2 className='text-xl font-bold mb-2'>{post.title}</h2>
+                            <p className='text-md mb-2'>{post.description}</p>
+                            {post.media && (
+                                post.mediaType === 'image' ? (
+                                    <img src={post.media} alt='Post media' className='w-full rounded-xl mb-2' />
+                                ) : (
+                                    <video controls className='w-full rounded-xl mb-2'>
+                                        <source src={post.media} type={`video/${post.media.split('.').pop()}`} />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                )
                             )}
-                            <span className='ml-2'>{(post.likes || []).length} Likes</span>
-                            {post.userId === currentUserId && (
-                                <MdOutlineDelete
-                                    onClick={() => deletePost(post.id)}
-                                    className='text-red-500 text-2xl cursor-pointer ml-auto'
-                                />
-                            )}
+                            <div className='flex items-center'>
+                                <button onClick={() => likePost(post.id, post.likes)}>
+                                    {post.likes.includes(currentUserId) ? <MdFavorite size={24} /> : <MdFavoriteBorder size={24} />}
+                                </button>
+                                <div className='ml-2'>{post.likes.length}</div>
+                                {isLoggedIn && currentUserId === post.userId && (
+                                    <button
+                                        className='ml-auto bg-red-500 text-white px-3 py-1 rounded-lg'
+                                        onClick={() => deletePost(post.id, post.media)}
+                                    >
+                                        <MdOutlineDelete size={24} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <div className='text-sm text-gray-500 mt-2'>{formatTimestamp(post.timestamp)}</div>
-                        <div className='w-full'>
-                            {isLoggedIn && (
-                                <CommentSection
-                                currentUser={{
-                                    currentUserId,
-                                    currentUserImg: userProfilePic,
-                                    currentUserFullName: username,
-                                    currentUserFullName: username
-                                }}
-                                logIn={{
-                                    signupLink: '/signup',
-                                }}
-                                commentData={post.comments || []}
-                                onSubmitAction={(commentData) => handleCommentSubmit(post.id, commentData)}
-                                />
-                            )}
-                        </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    <p>No posts available.</p>
+                )}
             </div>
 
             <ToastContainer />
