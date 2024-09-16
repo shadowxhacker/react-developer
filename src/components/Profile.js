@@ -3,6 +3,7 @@ import { auth, db, storage } from "./firebase";
 import { doc, onSnapshot, updateDoc, collection, addDoc, deleteDoc, getDoc, where, query, arrayUnion, arrayRemove } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Profile = () => {
     const [userName, setUserName] = useState("");
@@ -18,6 +19,8 @@ const Profile = () => {
     const [description, setDescription] = useState("");
     const [media, setMedia] = useState(null);
     const [mediaType, setMediaType] = useState("");
+
+    const navigate = useNavigate(); // Initialize useNavigate
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
@@ -92,54 +95,52 @@ const Profile = () => {
         }
     };
 
+    const handleProfileRedirect = (userId) => {
+        // Redirect to the profile page of the user
+        navigate(`/profile/${userId}`);
+    };
+
     const uploadImage = async () => {
         if (!imageFile) return null;
-
+    
         const storageRef = ref(storage, `profile_images/${currentUser.uid}`);
-        const uploadTask = uploadBytes(storageRef, imageFile);
-
-        return new Promise((resolve, reject) => {
-            uploadTask.on(
-                "state_changed",
-                null,
-                (error) => {
-                    console.error("Error uploading image: ", error);
-                    reject(error);
-                },
-                async () => {
-                    try {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        resolve(downloadURL);
-                    } catch (error) {
-                        console.error("Error getting image URL: ", error);
-                        reject(error);
-                    }
-                }
-            );
-        });
+        
+        try {
+            // Upload the file
+            await uploadBytes(storageRef, imageFile);
+            
+            // Get the download URL after the file is successfully uploaded
+            const downloadURL = await getDownloadURL(storageRef);
+            return downloadURL;
+        } catch (error) {
+            console.error("Error uploading image: ", error);
+            toast.error("Error uploading image.");
+            return null;
+        }
     };
+    
 
     const handleSaveChanges = async () => {
         if (!currentUser) return;
-
+    
         setLoading(true);
         try {
             let imageURL = image; // Use the current image URL as default
-
+    
             if (imageFile) {
-                imageURL = await uploadImage();
+                imageURL = await uploadImage(); // Get the new image URL after upload
             }
-
+    
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 userName,
                 bio,
                 profileImage: imageURL || currentUser.photoURL // Use existing image if upload fails
             });
-
+    
             // Update local state to reflect changes
             setImage(imageURL || currentUser.photoURL);
-
+    
             toast.success("Profile updated successfully!");
             setEditMode(false);
         } catch (error) {
@@ -169,7 +170,7 @@ const Profile = () => {
                 media: mediaURL || '',
                 mediaType,
                 fullName: currentUser.displayName || 'Anonymous',
-                userProfilePic: currentUser.photoURL || '',
+                userProfilePic: currentUser.photoURL || '',  // Saving user's profile picture
                 timestamp: new Date(),
                 userId: currentUser.uid,
                 likes: []
@@ -218,18 +219,6 @@ const Profile = () => {
         }
     };
 
-    const handleFollowUser = async (userId) => {
-        try {
-            const userRef = doc(db, 'users', currentUser.uid);
-            await updateDoc(userRef, {
-                following: arrayUnion(userId)
-            });
-        } catch (error) {
-            console.error("Error following user: ", error.message);
-            toast.error('Error following user.');
-        }
-    };
-
     return (
         <div className="container mx-auto p-6 bg-gray-900 text-white shadow-lg rounded-lg max-w-lg">
             <h1 className="text-4xl font-extrabold mb-6 text-center text-pink-400 neon-text">Profile</h1>
@@ -256,8 +245,9 @@ const Profile = () => {
                                     onChange={(e) => setUserName(e.target.value)}
                                     className="w-full p-2 mb-4 border border-gray-600 rounded bg-gray-800 text-white"
                                 />
-                                <textarea
-                                    placeholder="Bio"
+                                <input
+                                    type="text"
+                                    placeholder="New Bio"
                                     value={bio}
                                     onChange={(e) => setBio(e.target.value)}
                                     className="w-full p-2 mb-4 border border-gray-600 rounded bg-gray-800 text-white"
@@ -266,18 +256,17 @@ const Profile = () => {
                                     type="file"
                                     accept="image/*"
                                     onChange={handleImageChange}
-                                    className="mb-4"
+                                    className="w-full p-2 mb-4 border border-gray-600 rounded bg-gray-800 text-white"
                                 />
-                                {imageFile && <img src={image} alt="Preview" className="w-32 h-32 object-cover mb-4" />}
                                 <button
                                     onClick={handleSaveChanges}
-                                    className="w-full p-2 bg-blue-500 text-white rounded mb-4"
+                                    className="w-full py-2 px-4 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg neon-button transition-colors"
                                 >
                                     Save Changes
                                 </button>
                                 <button
                                     onClick={() => setEditMode(false)}
-                                    className="w-full p-2 bg-red-500 text-white rounded"
+                                    className="w-full mt-2 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -285,78 +274,59 @@ const Profile = () => {
                         ) : (
                             <button
                                 onClick={() => setEditMode(true)}
-                                className="w-full p-2 bg-blue-500 text-white rounded mb-6"
+                                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg neon-button transition-colors"
                             >
                                 Edit Profile
                             </button>
                         )}
                     </>
                 ) : (
-                    <p className="text-center text-red-500">Please log in to manage your profile.</p>
+                    <p className="text-center text-red-400">Please sign in to edit your profile.</p>
                 )}
             </div>
 
-            {currentUser && (
-                <div className="mt-6">
-                    <h2 className="text-2xl font-bold mb-4">Create a Post</h2>
-                    <input
-                        type="text"
-                        placeholder="Title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full p-2 mb-4 border border-gray-600 rounded bg-gray-800 text-white"
-                    />
-                    <textarea
-                        placeholder="Description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full p-2 mb-4 border border-gray-600 rounded bg-gray-800 text-white"
-                    />
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                            setMedia(e.target.files[0]);
-                            setMediaType(e.target.files[0] ? e.target.files[0].type : "");
-                        }}
-                        className="mb-4"
-                    />
-                    {media && <img src={URL.createObjectURL(media)} alt="Media Preview" className="w-32 h-32 object-cover mb-4" />}
-                    <button
-                        onClick={submit}
-                        className="w-full p-2 bg-blue-500 text-white rounded"
-                    >
-                        Create Post
-                    </button>
-                </div>
-            )}
-
-            {posts.length > 0 && (
-                <div className="mt-6">
-                    <h2 className="text-2xl font-bold mb-4">Your Posts</h2>
-                    {posts.map((post) => (
-                        <div key={post.id} className="mb-4 p-4 border border-gray-700 rounded bg-gray-800">
-                            <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-                            <p className="mb-2">{post.description}</p>
-                            {post.media && <img src={post.media} alt="Post Media" className="w-full h-auto mb-2" />}
-                            <div className="flex justify-between items-center mt-2">
-                                <button
-                                    onClick={() => handleLikePost(post.id, currentUser.uid)}
-                                    className="p-2 bg-green-500 text-white rounded"
-                                >
-                                    {post.likes.includes(currentUser.uid) ? 'Unlike' : 'Like'}
-                                </button>
-                                <button
-                                    onClick={() => handleDeletePost(post.id)}
-                                    className="p-2 bg-red-500 text-white rounded"
-                                >
-                                    Delete
-                                </button>
+            {/* Display user posts */}
+            <div className="w-full mt-6">
+                <h2 className="text-2xl font-bold mb-4 text-purple-400 neon-text">Posts</h2>
+                {posts.map(post => (
+                    <div key={post.id} className="bg-gray-800 p-4 mb-4 rounded-lg shadow-lg">
+                        <div className="flex items-center mb-4">
+                            <img
+                                src={post.userProfilePic || 'default-profile.jpg'}
+                                alt="User"
+                                className="w-12 h-12 rounded-full object-cover border-2 border-pink-500 neon-border mr-4"
+                                onClick={() => handleProfileRedirect(post.userId)} // Add click handler
+                                style={{ cursor: 'pointer' }}
+                            />
+                            <div>
+                                <p className="font-bold text-blue-300 neon-text" onClick={() => handleProfileRedirect(post.userId)} style={{ cursor: 'pointer' }}>
+                                    {post.fullName || 'Anonymous'}
+                                </p>
+                                <p className="text-gray-400">{new Date(post.timestamp.seconds * 1000).toLocaleString()}</p>
                             </div>
                         </div>
-                    ))}
-                </div>
-            )}
+                        <h3 className="text-xl font-bold mb-2 text-purple-300">{post.title}</h3>
+                        <p className="text-gray-400 mb-4">{post.description}</p>
+                        {post.media && (
+                            <img src={post.media} alt="Post media" className="w-full h-48 object-cover rounded-lg mb-4" />
+                        )}
+                        <div className="flex justify-between items-center">
+                            <button
+                                onClick={() => handleLikePost(post.id, currentUser ? currentUser.uid : '')}
+                                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg neon-button"
+                            >
+                                {post.likes.includes(currentUser ? currentUser.uid : '') ? 'Unlike' : 'Like'}
+                            </button>
+                            <button
+                                onClick={() => handleDeletePost(post.id)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

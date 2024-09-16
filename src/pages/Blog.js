@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, deleteDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, db, storage } from '../components/firebase';
-import { MdOutlineDelete, MdFavoriteBorder, MdFavorite } from 'react-icons/md';
+import { MdOutlineDelete, MdFavoriteBorder, MdFavorite, MdImage, MdVideoLibrary, MdClose } from 'react-icons/md';
 import { Helmet } from 'react-helmet';
 import { RotatingLines } from 'react-loader-spinner';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ const Blog = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [fullName, setFullName] = useState('');
+    const [userProfilePic, setUserProfilePic] = useState('')
     const [loading, setLoading] = useState(false);
     const [followedUsers, setFollowedUsers] = useState(new Set())
     const navigate = useNavigate();
@@ -36,6 +37,7 @@ const Blog = () => {
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
                         setFullName(userData.fullName);
+                        setUserProfilePic(userData.profile_images || 'DefaultProfilePic')
                         setFollowedUsers(new Set(userData.following || []))
                     }
                 } catch (error) {
@@ -46,6 +48,7 @@ const Blog = () => {
                 setIsLoggedIn(false);
                 setCurrentUserId(null);
                 setFullName('');
+                setUserProfilePic('')
             }
         });
     
@@ -166,10 +169,11 @@ const Blog = () => {
                 media: mediaURL || '',
                 mediaType,
                 fullName: fullName || 'Anonymous',
-                userProfilePic: currentUser.photoURL || '',
+                userProfilePic: currentUser.photoURL || userProfilePic,
                 timestamp: serverTimestamp(),
                 userId: currentUser.uid,
-                likes: []
+                likes: [],
+                comment: []
             };
     
             const postRef = doc(collection(db, 'posts'));
@@ -310,6 +314,7 @@ const Blog = () => {
         </button>
     ), [isLoggedIn, isFormOpen]);
 
+    
     return (
         <div className='bg-[#101010] pt-2 min-h-screen flex flex-col justify-between'>
             <Helmet>
@@ -322,23 +327,37 @@ const Blog = () => {
             </div>
 
             {isFormOpen && (
-                <div className='flex flex-col items-center justify-center w-full h-auto mt-5'>
-                    <div className='w-full max-w-lg bg-slate-500 rounded-3xl p-5'>
+                <div className={`fixed inset-0 bg-[#101010] bg-opacity-50 z-50 flex items-center justify-center ${isFormOpen ? 'block' : 'hidden'}`}>
+                    <div className='bg-[#171717] p-6 rounded-lg shadow-lg w-full max-w-lg'>
+                        <div className='flex justify-between items-center mb-4'>
+                    <h2 className="text-xl text-gray-400 font-semibold mb-4">Create a New Post</h2>
+                    <button onClick={() => setIsFormOpen(false)} className="text-gray-500 hover:text-gray-800">
+                                <MdClose size={24} />
+                            </button>
+                    </div>
                         <input
                             type='text'
                             placeholder='Add Title'
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className='w-full px-5 py-2 mb-4 bg-slate-400 rounded-xl'
+                            className='p-2 w-full mb-4 bg-transparent text-gray-300 shadow-inner outline-none'
                         />
                         <textarea
                             placeholder='Add Description'
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className='w-full px-5 py-2 mb-4 bg-slate-400 rounded-xl'
+                            className='p-2 w-full resize-none mb-4 bg-transparent text-gray-300 shadow-inner outline-none'
+                            rows="4"
                         />
-                        <div className='relative w-full mb-4'>
-                            <input type="file" onChange={handleMediaChange} className='absolute w-full opacity-0 cursor-pointer' />
+                        <div className='relative mb-4'>
+                            <label className='mr-4 cursor-pointer'>
+                                <MdImage className='text-[24px] text-gray-400' />
+                            <input type="file" accept='image/*' onChange={handleMediaChange} className="hidden" />
+                            </label>
+                            <label className='mr-4 cursor-pointer'>
+                                <MdVideoLibrary className='text-[24px] text-gray-400' />
+                            <input type="file" accept='video/*' onChange={handleMediaChange} className="hidden" />
+                            </label>
                             <div className='w-full h-48 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center'>
                                 {media ? (
                                     mediaType === 'image' ? (
@@ -371,7 +390,7 @@ const Blog = () => {
                     <div key={post.id} className='w-full max-w-lg mx-auto bg-transparent border-b-[0.1px] border-[#8c8c8c] shadow-md p-5 mb-4'>
                         <div className='flex items-center mb-3'>
                             <img
-                                src={post.userProfilePic || 'DefaultProfilePic'}
+                                src={post.userProfilePic}
                                 alt='User Profile'
                                 className='w-12 h-12 rounded-full object-cover mr-3 cursor-pointer'
                                 onClick={() => viewProfile(post.userId)}
@@ -391,8 +410,17 @@ const Blog = () => {
                         </div>
                         <h2 className='text-xl font-semibold mb-2 text-[#EAECEE]'>{post.title}</h2>
                         <p className='mb-2 text-[#EAECEE]'>{post.description}</p>
-                        {post.mediaType === 'image' && <img src={post.media} alt='Post Media' className='w-full h-auto rounded-lg mb-2' />}
-                        {post.mediaType === 'video' && <video controls className='w-full h-auto rounded-lg mb-2'><source src={post.media} /></video>}
+                        {post.mediaType === 'image' &&
+                        <img
+                         src={post.media} 
+                         alt='Post Media' 
+                         className='w-full h-[500px] object-cover rounded-lg mb-2'
+                         />}
+                        {post.mediaType === 'video' &&
+                            <video controls className='w-full h-[500px] object-cover rounded-lg mb-2'>
+                                <source src={post.media} />
+                                </video>
+                            }
                         <div className='flex items-center justify-between'>
                             <button
                                 onClick={() => likePost(post.id, post.likes)}
@@ -409,9 +437,6 @@ const Blog = () => {
                     </div>
                 ))}
             </div>
-
-
-
             <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         </div>
     );
