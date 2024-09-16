@@ -62,7 +62,7 @@ function Signup() {
       setEmail('');
       setPassword('');
       toast.success('Sign up successful!');
-      navigate('/user-profile'); // Navigate to UserProfile page after signup
+      navigate('/profile'); // Navigate to UserProfile page after signup
     } catch (err) {
       toast.error(err.message);
     }

@@ -1,13 +1,11 @@
 import React from 'react'
 import Header from './components/Header'
-import Home from './pages/Home'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import CardData from './CardsData'
 import Blog from './pages/Blog'
-import Signup from './components/Singup'
+import Singup from './components/Singup'
 import Profile from './components/Profile'
-import UserPage from './components/UserPage'
 import { Routes, Route } from 'react-router-dom'
 
 
@@ -18,13 +16,11 @@ function App() {
       <Header />
       <Routes>
             <Route path='/' element={<Blog />} />
-            <Route path='/home' element={<Home />} />
             <Route path='/orders' element={<CardData />} />
             <Route path='/about' element={<About />} />
             <Route path='/contact' element={<Contact />} />
             <Route path='/profile' element={<Profile />} />
-            <Route path='/profile/:userId' element={<UserPage />} />
-            <Route path='/singup' element={<Signup />} />
+            <Route path='/singup' element={<Singup />} />
         </Routes>
     </div>
   )
