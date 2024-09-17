@@ -91,25 +91,19 @@ const Profile = () => {
         const file = e.target.files[0];
         if (file) {
             setImageFile(file);
-            setImage(URL.createObjectURL(file)); // Preview the selected image
+            setImage(URL.createObjectURL(file));
         }
     };
 
     const handleProfileRedirect = (userId) => {
-        // Redirect to the profile page of the user
         navigate(`/profile/${userId}`);
     };
 
     const uploadImage = async () => {
         if (!imageFile) return null;
-    
         const storageRef = ref(storage, `profile_images/${currentUser.uid}`);
-        
         try {
-            // Upload the file
             await uploadBytes(storageRef, imageFile);
-            
-            // Get the download URL after the file is successfully uploaded
             const downloadURL = await getDownloadURL(storageRef);
             return downloadURL;
         } catch (error) {
@@ -118,6 +112,7 @@ const Profile = () => {
             return null;
         }
     };
+    
     
 
     const handleSaveChanges = async () => {
@@ -131,14 +126,18 @@ const Profile = () => {
                 imageURL = await uploadImage(); // Get the new image URL after upload
             }
     
+            // Update user's profile in Firebase Auth
+            await currentUser.updateProfile({
+                photoURL: imageURL
+            });
+    
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 userName,
                 bio,
-                profileImage: imageURL || currentUser.photoURL // Use existing image if upload fails
+                profileImage: imageURL || currentUser.photoURL
             });
     
-            // Update local state to reflect changes
             setImage(imageURL || currentUser.photoURL);
     
             toast.success("Profile updated successfully!");
@@ -150,32 +149,33 @@ const Profile = () => {
             setLoading(false);
         }
     };
+    
 
     const submit = async () => {
         if (!currentUser) {
             toast.error('You must be logged in to create a post.');
             return;
         }
-
+    
         setLoading(true);
         try {
             let mediaURL = '';
             if (media) {
-                mediaURL = await uploadImage(); // Changed from uploadMedia to uploadImage
+                mediaURL = await uploadImage(); // Upload media (image/video) for the post
             }
-
+    
             const newPost = {
                 title,
                 description,
                 media: mediaURL || '',
                 mediaType,
                 fullName: currentUser.displayName || 'Anonymous',
-                userProfilePic: currentUser.photoURL || '',  // Saving user's profile picture
+                userProfilePic: currentUser.photoURL || 'default-profile.jpg',  // Ensure user's profile picture is saved
                 timestamp: new Date(),
                 userId: currentUser.uid,
                 likes: []
             };
-
+    
             await addDoc(collection(db, 'posts'), newPost);
             toast.success('Post created successfully!');
             setTitle('');
@@ -189,6 +189,7 @@ const Profile = () => {
             setLoading(false);
         }
     };
+    
 
     const handleDeletePost = async (postId) => {
         try {
@@ -291,13 +292,13 @@ const Profile = () => {
                 {posts.map(post => (
                     <div key={post.id} className="bg-gray-800 p-4 mb-4 rounded-lg shadow-lg">
                         <div className="flex items-center mb-4">
-                            <img
-                                src={post.userProfilePic || 'default-profile.jpg'}
-                                alt="User"
-                                className="w-12 h-12 rounded-full object-cover border-2 border-pink-500 neon-border mr-4"
-                                onClick={() => handleProfileRedirect(post.userId)} // Add click handler
-                                style={{ cursor: 'pointer' }}
-                            />
+                        <img
+                            src={post.userProfilePic || 'default-profile.jpg'}
+                            alt="User"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-pink-500 neon-border mr-4"
+                            onClick={() => handleProfileRedirect(post.userId)}
+                            style={{ cursor: 'pointer' }}
+                        />
                             <div>
                                 <p className="font-bold text-blue-300 neon-text" onClick={() => handleProfileRedirect(post.userId)} style={{ cursor: 'pointer' }}>
                                     {post.fullName || 'Anonymous'}
