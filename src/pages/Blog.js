@@ -11,7 +11,6 @@ import { useNavigate } from 'react-router-dom';
 import { debounce } from 'lodash';
 import imageCompression from 'browser-image-compression';
 
-
 const Blog = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -25,7 +24,7 @@ const Blog = () => {
     const [fullName, setFullName] = useState('');
     const [userProfilePic, setUserProfilePic] = useState('')
     const [loading, setLoading] = useState(false);
-    const [followedUsers, setFollowedUsers] = useState(new Set())
+    const [followedUsers, setFollowedUsers] = useState(new Set());
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -61,8 +60,6 @@ const Blog = () => {
             querySnapshot.forEach((doc) => {
                 postsData.push({ id: doc.id, ...doc.data() });
             });
-
-            
             const sortedPosts = postsData.sort((a, b) => {
                 const aTimestamp = a.timestamp ? a.timestamp.toDate().getTime() : 0;
                 const bTimestamp = b.timestamp ? b.timestamp.toDate().getTime() : 0;
@@ -105,7 +102,7 @@ const Blog = () => {
 
         videoRefs.current.slice(0, 10).forEach((video) => video && observer.observe(video));
         return () => videoRefs.current.forEach((video) => video && observer.unobserve(video));
-      }, [posts]);
+    }, [posts]);
 
     const formatTimestamp = useCallback((timestamp) => {
         if (!timestamp) return '';
@@ -143,8 +140,8 @@ const Blog = () => {
     const uploadMedia = async (file) => {
         const storageRef = ref(storage, `media/${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
-        
-        if(file.type.startsWith('image/')){
+
+        if (file.type.startsWith('image/')) {
             const compressedFile = await imageCompression(file, {
                 maxSizeMB: 50,
                 maxWidthOrHeight: 1920,
@@ -227,7 +224,6 @@ const Blog = () => {
         }
     };
 
-
     const deletePost = async (id, mediaURL) => {
         try {
             await deleteDoc(doc(db, 'posts', id));
@@ -250,12 +246,10 @@ const Blog = () => {
         try {
             const postRef = doc(db, 'posts', postId);
             if (likes.includes(currentUserId)) {
-                // Unlike the post
                 await updateDoc(postRef, {
                     likes: likes.filter(id => id !== currentUserId)
                 });
             } else {
-                // Like the post
                 await updateDoc(postRef, {
                     likes: [...likes, currentUserId]
                 });
@@ -266,7 +260,6 @@ const Blog = () => {
         }
     };
 
-
     const followUser = async (userId) => {
         if (!isLoggedIn) {
             toast.error('You must be logged in to follow users.');
@@ -276,12 +269,10 @@ const Blog = () => {
             const currentUserRef = doc(db, 'users', currentUserId);
             const userToFollowRef = doc(db, 'users', userId);
 
-            // Add userId to the current user's following list
             await updateDoc(currentUserRef, {
                 following: arrayUnion(userId)
             });
 
-            // Add currentUserId to the followed user's followers list
             await updateDoc(userToFollowRef, {
                 followers: arrayUnion(currentUserId)
             });
@@ -304,12 +295,10 @@ const Blog = () => {
             const currentUserRef = doc(db, 'users', currentUserId);
             const userToUnfollowRef = doc(db, 'users', userId);
 
-            // Remove userId from the current user's following list
             await updateDoc(currentUserRef, {
                 following: arrayRemove(userId)
             });
 
-            // Remove currentUserId from the unfollowed user's followers list
             await updateDoc(userToUnfollowRef, {
                 followers: arrayRemove(currentUserId)
             });
@@ -325,7 +314,6 @@ const Blog = () => {
             toast.error(`Error unfollowing the user: ${error.message}`);
         }
     };
-
 
     const handleFollowButtonClick = (postUserId) => {
         if (followedUsers.has(postUserId)) {
@@ -370,20 +358,8 @@ const Blog = () => {
                                 <MdClose size={24} />
                             </button>
                         </div>
-                        <input
-                            type='text'
-                            placeholder='Add Title'
-                            value={title}
-                            onChange={(e) => handleInputChange(e.target.value)}
-                            className='p-2 w-full mb-4 bg-transparent text-gray-300 shadow-inner outline-none'
-                        />
-                        <textarea
-                            placeholder='Add Description'
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className='p-2 w-full resize-none mb-4 bg-transparent text-gray-300 shadow-inner outline-none'
-                            rows="4"
-                        />
+                        <input type='text' placeholder='Add Title' value={title} onChange={(e) => setTitle(e.target.value)} className='p-2 w-full mb-4 bg-transparent text-gray-300 shadow-inner outline-none' />
+                        <textarea placeholder='Add Description' value={description} onChange={(e) => setDescription(e.target.value)} className='p-2 w-full resize-none mb-4 bg-transparent text-gray-300 shadow-inner outline-none' rows="4" />
                         <div className='relative mb-4'>
                             <label className='mr-4 cursor-pointer'>
                                 <MdImage className='text-[24px] text-gray-400' />
@@ -411,8 +387,7 @@ const Blog = () => {
                         <button
                             onClick={submit}
                             className={`w-full bg-blue-500 text-white p-3 rounded-xl ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={loading}
-                        >
+                            disabled={loading}>
                             {loading ? <RotatingLines strokeColor="white" strokeWidth="5" animationDuration="0.75" width="24" visible={true} /> : 'Post'}
                         </button>
                     </div>
@@ -446,22 +421,9 @@ const Blog = () => {
                         <h2 className='text-xl font-semibold mb-2 text-[#EAECEE]'>{post.title}</h2>
                         <p className='mb-2 text-[#EAECEE]'>{post.description}</p>
                         {post.mediaType === 'image' &&
-                            <img
-                                loading='lazy'
-                                src={post.media}
-                                alt='Post Media'
-                                className='w-full h-[500px] object-cover rounded-lg mb-2'
-                            />}
+                            <img loading='lazy' src={post.media} alt='Post Media' className='w-full h-[500px] object-cover rounded-lg mb-2'/>}
                         {post.mediaType === 'video' && (
-                            <video
-                                id='myVideo'
-                                autoPlay
-                                muted
-                                src={post.media}
-                                preload='metadata'
-                                ref={el => (videoRefs.current[index] = el)}
-                                controls
-                                className='w-full h-[500px] object-cover rounded-lg mb-2'>
+                            <video id='myVideo' autoPlay muted src={post.media} preload='metadata' ref={el => (videoRefs.current[index] = el)} controls className='w-full h-[500px] object-cover rounded-lg mb-2'>
                                 <source src="video.mp4" type="video/mp4" />
                             </video>
                         )}
@@ -481,6 +443,7 @@ const Blog = () => {
                     </div>
                 ))}
             </div>
+
             <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         </div>
     );
